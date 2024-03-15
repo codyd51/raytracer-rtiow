@@ -1,0 +1,12 @@
+# Rust build system
+/target
+
+# Generated images
+latest_image.ppm
+images/
+
+# macOS detritus
+.DS_Store
+
+# Rustrover detritus
+.idea/
