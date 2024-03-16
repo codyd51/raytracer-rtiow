@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
-use std::ops::{AddAssign, Deref, DivAssign, Index, MulAssign, Neg};
+use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub};
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -35,9 +35,9 @@ impl Index<usize> for Vec3 {
 
     fn index(&self, index: usize) -> &Self::Output {
         match index {
-            0 => *self.x,
-            1 => *self.y,
-            2 => *self.z,
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
             _ => panic!("Invalid Vec3 index: {index}"),
         }
     }
@@ -74,12 +74,97 @@ impl MulAssign<f64> for Vec3 {
 impl DivAssign<f64> for Vec3 {
     fn div_assign(&mut self, rhs: f64) {
         // Reuse our MulAssign operation
-        self *= 1f64 / rhs;
+        *self *= 1f64 / rhs;
     }
 }
 
 impl Display for Vec3 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str(&format!("Vec3({}, {}, {})", self.x, self.y, self.z))
+    }
+}
+
+impl Add for Vec3 {
+    type Output = Vec3;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::new(
+            self.x + rhs.x,
+            self.y + rhs.y,
+            self.z + rhs.z,
+        )
+    }
+}
+
+impl Sub for Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::new(
+            self.x - rhs.x,
+            self.y - rhs.y,
+            self.z - rhs.z,
+        )
+    }
+}
+
+impl Mul<Vec3> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self::new(
+            self.x * rhs.x,
+            self.y * rhs.y,
+            self.z * rhs.z,
+        )
+    }
+}
+
+impl Mul<f64> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        Self::new(
+            self.x * rhs,
+            self.y * rhs,
+            self.z * rhs,
+        )
+    }
+}
+
+// TODO(PT): Is this reverse order necessary?
+impl Mul<Vec3> for f64 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: Vec3) -> Self::Output {
+        Vec3::new(
+            self * rhs.x,
+            self * rhs.y,
+            self * rhs.z,
+        )
+    }
+}
+
+impl Div<Vec3> for Vec3 {
+    type Output = Vec3;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        Self::new(
+            self.x / rhs.x,
+            self.y / rhs.y,
+            self.z / rhs.z,
+        )
+    }
+}
+
+impl Div<f64> for Vec3 {
+    type Output = Vec3;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        Self::new(
+            self.x / rhs,
+            self.y / rhs,
+            self.z / rhs,
+        )
     }
 }
