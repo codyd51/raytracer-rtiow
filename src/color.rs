@@ -3,7 +3,17 @@ use std::ops::Deref;
 use crate::vec3::Vec3;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Color(Vec3);
+pub struct Color(Vec3);
+
+impl Color {
+    pub fn new(r: f64, g: f64, b: f64) -> Self {
+        Self(Vec3::new(r, g, b))
+    }
+
+    pub fn triplet_str(&self) -> String {
+        format!("{} {} {}    ", (self.0.x * 255.99).floor(), (self.0.y * 255.99).floor(), (self.0.z * 255.99).floor())
+    }
+}
 
 impl Deref for Color {
     type Target = Vec3;
@@ -15,6 +25,6 @@ impl Deref for Color {
 
 impl Display for Color {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&format!("Col({}, {}, {})", self.0.x, self.0.y, self.0.z))
+        f.write_str(&format!("Color({}, {}, {})", self.0.x, self.0.y, self.0.z))
     }
 }

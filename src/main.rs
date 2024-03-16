@@ -6,6 +6,7 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::ops::{Add, AddAssign, DivAssign, Index, MulAssign, Neg, Sub};
 use std::time::SystemTime;
+use crate::color::Color;
 
 fn main() -> std::io::Result<()> {
     let width = 256;
@@ -18,15 +19,12 @@ fn main() -> std::io::Result<()> {
     for y in 0..height {
         println!("{} scanlines remaining", height - y);
         for x in 0..width {
-            let r = x as f64 / (width - 1) as f64;
-            let g = y as f64 / (height - 1) as f64;
-            let b = 0f64;
-
-            let ir = (r * 255.99) as u8;
-            let ig = (g * 255.99) as u8;
-            let ib = (b * 255.99) as u8;
-
-            out.extend(format!("{ir} {ig} {ib}   ").as_bytes());
+            let color = Color::new(
+                x as f64 / (width - 1) as f64,
+                y as f64 / (height - 1) as f64,
+                0f64,
+            );
+            out.extend(color.triplet_str().as_bytes())
         }
         out.extend("\n".as_bytes());
     }

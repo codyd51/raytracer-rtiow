@@ -3,7 +3,7 @@ use std::ops::Deref;
 use crate::vec3::Vec3;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Pos(Vec3);
+pub struct Pos(Vec3);
 
 impl Deref for Pos {
     type Target = Vec3;

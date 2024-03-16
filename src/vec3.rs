@@ -9,7 +9,7 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    fn zero() -> Self {
+    pub fn zero() -> Self {
         Self {
             x: 0f64,
             y: 0f64,
@@ -17,8 +17,8 @@ impl Vec3 {
         }
     }
 
-    fn new(x: f64, y: f64, z: f64) -> Self {
-        Self { x, y, z, }
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        Self { x, y, z }
     }
 
     fn length(&self) -> f64 {
