@@ -1,6 +1,11 @@
+mod vec3;
+mod pos;
+mod color;
+
 use std::io::prelude::*;
 use std::fs::File;
-use std::time::{Instant, SystemTime};
+use std::ops::{Add, AddAssign, DivAssign, Index, MulAssign, Neg, Sub};
+use std::time::SystemTime;
 
 fn main() -> std::io::Result<()> {
     let width = 256;
@@ -11,6 +16,7 @@ fn main() -> std::io::Result<()> {
     out.extend(format!("P3\n{width} {height}\n255\n").as_bytes());
 
     for y in 0..height {
+        println!("{} scanlines remaining", height - y);
         for x in 0..width {
             let r = x as f64 / (width - 1) as f64;
             let g = y as f64 / (height - 1) as f64;
@@ -20,9 +26,11 @@ fn main() -> std::io::Result<()> {
             let ig = (g * 255.99) as u8;
             let ib = (b * 255.99) as u8;
 
-            out.extend(format!("{ir:3} {ig:3} {ib:3}\n").as_bytes());
+            out.extend(format!("{ir} {ig} {ib}   ").as_bytes());
         }
+        out.extend("\n".as_bytes());
     }
+    println!("Done! Writing output files...");
 
     // Write to our output file
     let mut output_file = File::create("./latest_image.ppm")?;
