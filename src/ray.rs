@@ -27,6 +27,6 @@ impl Ray {
     }
 
     pub fn at(&self, t: f64) -> Pos {
-        Pos::new(*self.origin + (t * self.direction))
+        Pos::from(*self.origin + (t * self.direction))
     }
 }

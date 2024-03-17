@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
-use std::ops::Deref;
+use std::ops::{Add, Deref, Mul};
+use crate::pos::Pos;
 use crate::vec3::Vec3;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -26,5 +27,27 @@ impl Deref for Color {
 impl Display for Color {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str(&format!("Color({}, {}, {})", self.0.x, self.0.y, self.0.z))
+    }
+}
+
+impl From<Vec3> for Color {
+    fn from(value: Vec3) -> Self {
+        Self(value)
+    }
+}
+
+impl Mul<Color> for f64 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color::from(self * (*rhs))
+    }
+}
+
+impl Add<Color> for Color {
+    type Output = Color;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Color::from(*self + *rhs)
     }
 }

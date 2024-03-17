@@ -21,21 +21,21 @@ impl Vec3 {
         Self { x, y, z }
     }
 
-    fn length(&self) -> f64 {
+    pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
 
-    fn length_squared(&self) -> f64 {
+    pub fn length_squared(&self) -> f64 {
         self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
 
-    fn dot(&self, rhs: &Self) -> f64 {
+    pub fn dot(&self, rhs: &Self) -> f64 {
         (self.x * rhs.x) +
         (self.y + rhs.y) +
         (self.z + rhs.z)
     }
 
-    fn cross(&self, rhs: &Self) -> Self {
+    pub fn cross(&self, rhs: &Self) -> Self {
         Self::new(
             (self.y * rhs.z) - (self.z * rhs.y),
             (self.z * rhs.x) - (self.x * rhs.z),
@@ -43,7 +43,7 @@ impl Vec3 {
         )
     }
 
-    fn unit_vector(&self) -> Self {
+    pub fn unit_vector(&self) -> Self {
         *self / self.length()
     }
 }
