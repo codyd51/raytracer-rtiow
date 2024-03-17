@@ -5,6 +5,12 @@ use crate::vec3::Vec3;
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Pos(Vec3);
 
+impl Pos {
+    pub fn new(v: Vec3) -> Self {
+        Self(v)
+    }
+}
+
 impl Deref for Pos {
     type Target = Vec3;
 
