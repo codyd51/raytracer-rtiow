@@ -2,25 +2,27 @@ mod vec3;
 mod pos;
 mod color;
 mod ray;
-mod hit;
+mod hittable;
 mod sphere;
 mod hittable_list;
 mod utils;
+mod interval;
 
 use std::io::prelude::*;
 use std::fs::File;
 use std::ops::{Add, AddAssign, DivAssign, Index, MulAssign, Neg, Sub};
 use std::time::SystemTime;
 use crate::color::Color;
-use crate::hit::Hittable;
+use crate::hittable::Hittable;
 use crate::hittable_list::HittableList;
+use crate::interval::Interval;
 use crate::pos::Pos;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 
 fn ray_color(ray: Ray, world: &dyn Hittable) -> Color {
-    if let Some(hit_record) = world.hit(ray, 0., f64::MAX) {
+    if let Some(hit_record) = world.hit(ray, Interval::new(0., f64::MAX)) {
         0.5 * (Color::from(hit_record.normal) + Color::white())
     }
     else {
