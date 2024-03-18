@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use std::ops::{Add, Deref, Mul};
+use std::ops::{Add, AddAssign, Deref, Mul};
 use crate::pos::Pos;
 use crate::vec3::Vec3;
 
@@ -11,12 +11,28 @@ impl Color {
         Self(Vec3::new(r, g, b))
     }
 
+    pub fn r(&self) -> f64 {
+        self.0.x
+    }
+
+    pub fn g(&self) -> f64 {
+        self.0.y
+    }
+
+    pub fn b(&self) -> f64 {
+        self.0.z
+    }
+
     pub fn white() -> Self {
         Self::new(1., 1., 1.)
     }
 
+    pub fn black() -> Self {
+        Self::new(0., 0., 0.)
+    }
+
     pub fn triplet_str(&self) -> String {
-        format!("{} {} {}    ", (self.0.x * 255.99).floor(), (self.0.y * 255.99).floor(), (self.0.z * 255.99).floor())
+        format!("{} {} {}    ", (self.r() * 255.99).floor(), (self.g() * 255.99).floor(), (self.b() * 255.99).floor())
     }
 }
 
@@ -53,5 +69,13 @@ impl Add<Color> for Color {
 
     fn add(self, rhs: Self) -> Self::Output {
         Color::from(*self + *rhs)
+    }
+}
+
+impl AddAssign<Color> for Color {
+    fn add_assign(&mut self, rhs: Color) {
+        self.0.x += rhs.r();
+        self.0.y += rhs.g();
+        self.0.z += rhs.b();
     }
 }
