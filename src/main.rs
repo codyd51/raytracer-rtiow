@@ -12,10 +12,24 @@ use crate::pos::Pos;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
+fn hit_sphere(center: Pos, radius: f64, ray: Ray) -> bool {
+    let oc = ray.origin - *center;
+    let a = Vec3::dot(ray.direction(), ray.direction());
+    let b = 2. * Vec3::dot(oc.into(), ray.direction());
+    let c = Vec3::dot(oc.into(), oc.into()) - (radius * radius);
+    let discriminant  = (b * b) - (4. * a *  c);
+    discriminant >= 0.
+}
+
 fn ray_color(ray: Ray) -> Color {
-    let unit_direction = ray.direction().unit_vector();
-    let a = 0.5 * (unit_direction.y + 1.0);
-    ((1.0 - a) * Color::new(1., 1., 1.)) + (a * Color::new(0.5, 0.7, 1.0))
+    if hit_sphere(Pos::new(0., 0., -1.), 0.5, ray) {
+        Color::new(1., 0., 0.)
+    }
+    else {
+        let unit_direction = ray.direction().unit_vector();
+        let a = 0.5 * (unit_direction.y + 1.0);
+        ((1.0 - a) * Color::new(1., 1., 1.)) + (a * Color::new(0.5, 0.7, 1.0))
+    }
 }
 
 fn main() -> std::io::Result<()> {

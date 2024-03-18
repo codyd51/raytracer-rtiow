@@ -3,8 +3,8 @@ use crate::vec3::Vec3;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Ray {
-    origin: Pos,
-    direction: Vec3,
+    pub origin: Pos,
+    pub direction: Vec3,
 }
 
 impl Ray {

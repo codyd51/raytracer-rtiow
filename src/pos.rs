@@ -17,6 +17,12 @@ impl From<Vec3> for Pos {
     }
 }
 
+impl From<Pos> for Vec3 {
+    fn from(value: Pos) -> Self {
+        value.0
+    }
+}
+
 impl Deref for Pos {
     type Target = Vec3;
 
