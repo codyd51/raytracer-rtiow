@@ -2,33 +2,26 @@ mod vec3;
 mod pos;
 mod color;
 mod ray;
+mod hit;
+mod sphere;
+mod hittable_list;
+mod utils;
 
 use std::io::prelude::*;
 use std::fs::File;
 use std::ops::{Add, AddAssign, DivAssign, Index, MulAssign, Neg, Sub};
 use std::time::SystemTime;
 use crate::color::Color;
+use crate::hit::Hittable;
+use crate::hittable_list::HittableList;
 use crate::pos::Pos;
 use crate::ray::Ray;
+use crate::sphere::Sphere;
 use crate::vec3::Vec3;
 
-fn hit_sphere(center: Pos, radius: f64, ray: Ray) -> Option<f64> {
-    let oc = ray.origin - *center;
-    let a = Vec3::dot(ray.direction(), ray.direction());
-    let b = 2. * Vec3::dot(oc.into(), ray.direction());
-    let c = Vec3::dot(oc.into(), oc.into()) - (radius * radius);
-    let discriminant  = (b * b) - (4. * a *  c);
-
-    if discriminant < 0. {
-        return None;
-    }
-    Some((-b - discriminant.sqrt()) / (2. * a))
-}
-
-fn ray_color(ray: Ray) -> Color {
-    if let Some(t) = hit_sphere(Pos::new(0., 0., -1.), 0.5, ray) {
-        let normal = Vec3::unit_vector(*ray.at(t) - Vec3::new(0., 0., -1.));
-        0.5 * Color::new(normal.x + 1., normal.y + 1., normal.z + 1.)
+fn ray_color(ray: Ray, world: &dyn Hittable) -> Color {
+    if let Some(hit_record) = world.hit(ray, 0., f64::MAX) {
+        0.5 * (Color::from(hit_record.normal) + Color::white())
     }
     else {
         // Background
@@ -47,6 +40,10 @@ fn main() -> std::io::Result<()> {
         0 => 1,
         height => height,
     };
+
+    let mut world = HittableList::new();
+    world.add(Box::new(Sphere::new(Pos::new(0., 0., -1.), 0.5)));
+    world.add(Box::new(Sphere::new(Pos::new(0., -100.5, -1.), 100.)));
 
     // Camera
     let focal_length = 1.0;
@@ -77,7 +74,7 @@ fn main() -> std::io::Result<()> {
             let pixel_center = top_left_pixel_loc + (x as f64 * pixel_delta_u) + (y  as f64 * pixel_delta_v);
             let ray_direction = pixel_center - *camera_center;
             let ray = Ray::new(camera_center, *ray_direction);
-            let pixel_color = ray_color(ray);
+            let pixel_color = ray_color(ray, &world);
             out.extend(pixel_color.triplet_str().as_bytes())
         }
         out.extend("\n".as_bytes());
