@@ -12,20 +12,26 @@ use crate::pos::Pos;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-fn hit_sphere(center: Pos, radius: f64, ray: Ray) -> bool {
+fn hit_sphere(center: Pos, radius: f64, ray: Ray) -> Option<f64> {
     let oc = ray.origin - *center;
     let a = Vec3::dot(ray.direction(), ray.direction());
     let b = 2. * Vec3::dot(oc.into(), ray.direction());
     let c = Vec3::dot(oc.into(), oc.into()) - (radius * radius);
     let discriminant  = (b * b) - (4. * a *  c);
-    discriminant >= 0.
+
+    if discriminant < 0. {
+        return None;
+    }
+    Some((-b - discriminant.sqrt()) / (2. * a))
 }
 
 fn ray_color(ray: Ray) -> Color {
-    if hit_sphere(Pos::new(0., 0., -1.), 0.5, ray) {
-        Color::new(1., 0., 0.)
+    if let Some(t) = hit_sphere(Pos::new(0., 0., -1.), 0.5, ray) {
+        let normal = Vec3::unit_vector(*ray.at(t) - Vec3::new(0., 0., -1.));
+        0.5 * Color::new(normal.x + 1., normal.y + 1., normal.z + 1.)
     }
     else {
+        // Background
         let unit_direction = ray.direction().unit_vector();
         let a = 0.5 * (unit_direction.y + 1.0);
         ((1.0 - a) * Color::new(1., 1., 1.)) + (a * Color::new(0.5, 0.7, 1.0))
