@@ -11,6 +11,10 @@ impl Color {
         Self(Vec3::new(r, g, b))
     }
 
+    pub fn white() -> Self {
+        Self::new(1., 1., 1.)
+    }
+
     pub fn triplet_str(&self) -> String {
         format!("{} {} {}    ", (self.0.x * 255.99).floor(), (self.0.y * 255.99).floor(), (self.0.z * 255.99).floor())
     }
