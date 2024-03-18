@@ -13,6 +13,7 @@ pub struct Camera {
     image_width: usize,
     image_height: usize,
     samples_per_pixel: usize,
+    max_ray_bounces: usize,
     camera_center: Pos,
     top_left_pixel_loc: Pos,
     /// Offset of pixel to the right
@@ -22,7 +23,12 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: usize, samples_per_pixel: usize) -> Self {
+    pub fn new(
+        aspect_ratio: f64,
+        image_width: usize,
+        samples_per_pixel: usize,
+        max_ray_bounces: usize,
+    ) -> Self {
         let image_height = match (image_width as f64 / aspect_ratio) as usize {
             // Ensure the height is at least 1
             0 => 1,
@@ -50,6 +56,7 @@ impl Camera {
             image_width,
             image_height,
             samples_per_pixel,
+            max_ray_bounces,
             camera_center,
             top_left_pixel_loc,
             pixel_delta_u,
@@ -70,7 +77,7 @@ impl Camera {
                 let mut pixel_color = Color::black();
                 for sample in 0..self.samples_per_pixel {
                     let ray = self.get_ray(x, y);
-                    pixel_color += self.ray_color(ray, world);
+                    pixel_color += self.ray_color(ray, world, self.max_ray_bounces);
                 }
                 self.write_color(&mut out, pixel_color);
             }
@@ -126,11 +133,14 @@ impl Camera {
         );
     }
 
-    fn ray_color(&self, ray: Ray, world: &dyn Hittable) -> Color {
-        if let Some(hit_record) = world.hit(ray, Interval::new(0., f64::MAX)) {
+    fn ray_color(&self, ray: Ray, world: &dyn Hittable, ray_bounces_remaining: usize) -> Color {
+        // If we've exceeded the ray bounce limit, no more light is contributed
+        if ray_bounces_remaining <= 0 {
+            Color::black()
+        }
             let bounce_direction = Vec3::random_matching_hemisphere_of_vec(hit_record.normal);
             let bounce_ray = Ray::new(hit_record.pos, bounce_direction);
-            0.5 * (self.ray_color(bounce_ray, world))
+            0.5 * (self.ray_color(bounce_ray, world, ray_bounces_remaining - 1))
         }
         else {
             // Background
