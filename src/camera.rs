@@ -128,7 +128,9 @@ impl Camera {
 
     fn ray_color(&self, ray: Ray, world: &dyn Hittable) -> Color {
         if let Some(hit_record) = world.hit(ray, Interval::new(0., f64::MAX)) {
-            0.5 * (Color::from(hit_record.normal) + Color::white())
+            let bounce_direction = Vec3::random_matching_hemisphere_of_vec(hit_record.normal);
+            let bounce_ray = Ray::new(hit_record.pos, bounce_direction);
+            0.5 * (self.ray_color(bounce_ray, world))
         }
         else {
             // Background

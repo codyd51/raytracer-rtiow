@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub};
+use crate::utils::{rand_double, rand_proportion};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vec3 {
@@ -19,6 +20,42 @@ impl Vec3 {
 
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
+    }
+
+    fn random_proportion() -> Self {
+        Self::new(rand_proportion(), rand_proportion(), rand_proportion())
+    }
+
+    fn random(min: f64, max: f64) -> Self {
+        Self::new(
+            rand_double(min, max),
+            rand_double(min, max),
+            rand_double(min, max),
+        )
+    }
+
+    fn random_in_unit_sphere() -> Self {
+        loop {
+            let v = Self::random_proportion();
+            if v.length_squared() < 1. {
+                return v;
+            }
+        }
+    }
+
+    fn random_unit_vector() -> Self {
+        Self::random_in_unit_sphere().unit_vector()
+    }
+
+    pub fn random_matching_hemisphere_of_vec(v: Vec3) -> Self {
+        let on_unit_sphere = Self::random_unit_vector();
+        // Positive dot product if the vectors lie on the same hemisphere
+        if Vec3::dot(v, on_unit_sphere) > 0. {
+            on_unit_sphere
+        }
+        else {
+            -on_unit_sphere
+        }
     }
 
     pub fn length(&self) -> f64 {
