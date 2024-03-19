@@ -8,12 +8,13 @@ use crate::hittable::Hittable;
 use crate::interval::Interval;
 use crate::pos::Pos;
 use crate::ray::Ray;
-use crate::utils::rand_proportion;
+use crate::utils::{degrees_to_radians, rand_proportion};
 use crate::vec3::Vec3;
 
 pub struct Camera {
     image_width: usize,
     image_height: usize,
+    vertical_field_of_view_angle: f64,
     samples_per_pixel: usize,
     max_ray_bounces: usize,
     camera_center: Pos,
@@ -28,6 +29,7 @@ impl Camera {
     pub fn new(
         aspect_ratio: f64,
         image_width: usize,
+        vertical_field_of_view_angle: f64,
         samples_per_pixel: usize,
         max_ray_bounces: usize,
     ) -> Self {
@@ -38,7 +40,9 @@ impl Camera {
         };
 
         let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let theta = degrees_to_radians(vertical_field_of_view_angle);
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * (image_width as f64 / image_height as f64);
         let camera_center = Pos::new(0., 0., 0.);
 
@@ -57,6 +61,7 @@ impl Camera {
         Self {
             image_width,
             image_height,
+            vertical_field_of_view_angle,
             samples_per_pixel,
             max_ray_bounces,
             camera_center,
