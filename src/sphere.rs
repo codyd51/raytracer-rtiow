@@ -1,23 +1,28 @@
+use std::rc::Rc;
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
+use crate::material::Material;
 use crate::pos::Pos;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone)]
 pub struct Sphere {
     center: Pos,
     radius: f64,
+    material: Rc<dyn Material>,
 }
 
 impl Sphere {
     pub fn new(
         center: Pos,
         radius: f64,
+        material: &Rc<dyn Material>,
     ) -> Self {
         Self {
             center,
             radius,
+            material: Rc::clone(material),
         }
     }
 }
@@ -53,6 +58,7 @@ impl Hittable for Sphere {
                 hit_pos,
                 ray,
                 normal,
+                &self.material,
             )
         )
     }
