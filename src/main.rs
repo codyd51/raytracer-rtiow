@@ -25,12 +25,12 @@ use crate::material::Material;
 use crate::metal::MetalMaterial;
 use crate::pos::Pos;
 use crate::sphere::Sphere;
+use crate::vec3::Vec3;
 
 fn main() -> std::io::Result<()> {
     let mut world = HittableList::new();
 
-    /*
-    let material_ground = LambertianMaterial::new(Color::new(0.8, 0.8, 0.));
+    let material_ground = LambertianMaterial::new(Color::new(0.8, 0.8, 0.0));
     let material_center = LambertianMaterial::new(Color::new(0.1, 0.2, 0.5));
     let material_left = DielectricMaterial::new(1.5);
     let material_right = MetalMaterial::new(Color::new(0.8, 0.6, 0.2), 0.0);
@@ -40,15 +40,16 @@ fn main() -> std::io::Result<()> {
     world.add(Box::new(Sphere::new(Pos::new(-1., 0., -1.), 0.5, &(Arc::clone(&material_left) as Arc<dyn Material>))));
     world.add(Box::new(Sphere::new(Pos::new(-1., 0., -1.), -0.4, &(material_left as Arc<dyn Material>))));
     world.add(Box::new(Sphere::new(Pos::new(1., 0., -1.), 0.5, &(material_right as Arc<dyn Material>))));
-    */
 
-    let mat_left = LambertianMaterial::new(Color::new(0.0, 0.0, 1.0));
-    let mat_right = LambertianMaterial::new(Color::new(1.0, 0.0, 0.0));
-
-    let R = (PI / 4.0).cos();
-    world.add(Box::new(Sphere::new(Pos::new(-R, 0.0, -1.0), R, &(mat_left as Arc<dyn Material>))));
-    world.add(Box::new(Sphere::new(Pos::new(R, 0.0, -1.0), R, &(Arc::clone(&mat_right) as Arc<dyn Material>))));
-
-    let camera = Camera::new(16.0 / 9.0, 800, 90.0, 100, 50);
+    let camera = Camera::new(
+        16.0 / 9.0,
+        800,
+        50.0,
+        Pos::new(-1.0, 1.0, 1.0),
+        Pos::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        100,
+        50,
+    );
     camera.render(&world)
 }
