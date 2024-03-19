@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign, Deref, Mul};
 use crate::pos::Pos;
+use crate::utils::{rand_double, rand_proportion};
 use crate::vec3::Vec3;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -29,6 +30,22 @@ impl Color {
 
     pub fn black() -> Self {
         Self::new(0., 0., 0.)
+    }
+
+    pub fn random() -> Self {
+        Self::new(
+            rand_proportion(),
+            rand_proportion(),
+            rand_proportion(),
+        )
+    }
+
+    pub fn random_in_range(min: f64, max: f64) -> Self {
+        Self::new(
+            rand_double(min, max),
+            rand_double(min, max),
+            rand_double(min, max),
+        )
     }
 
     pub fn triplet_str(&self) -> String {

@@ -47,6 +47,15 @@ impl Vec3 {
         Self::random_in_unit_sphere().unit_vector()
     }
 
+    pub fn random_in_unit_disk() -> Self {
+        loop {
+            let v = Vec3::new(rand_proportion(), rand_proportion(), rand_proportion());
+            if v.length_squared() < 1.0 {
+                return v;
+            }
+        }
+    }
+
     pub fn random_matching_hemisphere_of_vec(v: Vec3) -> Self {
         let on_unit_sphere = Self::random_unit_vector();
         // Positive dot product if the vectors lie on the same hemisphere
