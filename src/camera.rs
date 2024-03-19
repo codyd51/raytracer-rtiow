@@ -1,12 +1,14 @@
 use std::fs::File;
 use std::io::Write;
 use std::time::SystemTime;
+use rayon::iter::IntoParallelIterator;
+use rayon::iter::ParallelIterator;
 use crate::color::Color;
 use crate::hittable::Hittable;
 use crate::interval::Interval;
 use crate::pos::Pos;
 use crate::ray::Ray;
-use crate::utils::{rand_double, rand_proportion};
+use crate::utils::rand_proportion;
 use crate::vec3::Vec3;
 
 pub struct Camera {
@@ -70,19 +72,34 @@ impl Camera {
         // Write out the PPM header
         out.extend(format!("P3\n{} {}\n255\n", self.image_width, self.image_height).as_bytes());
 
-        for y in 0..self.image_height {
-            println!("{} scanlines remaining", self.image_height - y);
+        let mut output_lines = vec![vec![]; self.image_height];
+
+        // Render each scanline in parallel
+        let scanline_indexes_to_pixel_bytes = (0..self.image_height).into_par_iter().map(|y|{
+            println!("Process scanline {}", self.image_height - y);
+            let mut scanline_bytes = vec![];
             for x in 0..self.image_width {
                 // Accumulate a pixel color through random sampling around the pixel
                 let mut pixel_color = Color::black();
-                for sample in 0..self.samples_per_pixel {
+                for _sample in 0..self.samples_per_pixel {
                     let ray = self.get_ray(x, y);
                     pixel_color += self.ray_color(ray, world, self.max_ray_bounces);
                 }
-                self.write_color(&mut out, pixel_color);
+                self.write_color(&mut scanline_bytes, pixel_color);
             }
-            out.extend("\n".as_bytes());
+            scanline_bytes.extend("\n".as_bytes());
+            (y, scanline_bytes)
+        }).collect::<Vec<(usize, Vec<u8>)>>();
+        
+        // Order the rendered scanlines
+        for (y, scanline_bytes) in scanline_indexes_to_pixel_bytes.iter() {
+            output_lines[*y] = scanline_bytes.to_vec();
         }
+        // And write them out
+        for line in output_lines.iter() {
+            out.extend(line)
+        }
+
         println!("Done! Writing output files...");
 
         // Write to our output file

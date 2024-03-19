@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 use crate::color::Color;
 use crate::hittable::HitRecord;
 use crate::ray::Ray;
@@ -17,8 +17,8 @@ pub struct LambertianMaterial {
 }
 
 impl LambertianMaterial {
-    pub fn new(albedo: Color) -> Rc<Self> {
-        Rc::new(
+    pub fn new(albedo: Color) -> Arc<Self> {
+        Arc::new(
             Self {
                 albedo,
             }
@@ -46,9 +46,9 @@ pub struct MetalMaterial {
 }
 
 impl MetalMaterial {
-    pub fn new(albedo: Color, fuzz: f64) -> Rc<Self> {
+    pub fn new(albedo: Color, fuzz: f64) -> Arc<Self> {
         let fuzz = if fuzz < 1.0 { fuzz } else { 1.0 };
-        Rc::new(
+        Arc::new(
             Self {
                 albedo,
                 fuzz,
@@ -71,8 +71,8 @@ pub struct DielectricMaterial {
 }
 
 impl DielectricMaterial {
-    pub fn new(index_of_refraction: f64) -> Rc<Self> {
-        Rc::new(
+    pub fn new(index_of_refraction: f64) -> Arc<Self> {
+        Arc::new(
             Self {
                 index_of_refraction,
             }
