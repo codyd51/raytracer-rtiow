@@ -159,7 +159,7 @@ impl Camera {
             self.defocus_disk_sample()
         };
         let ray_direction = *pixel_sample - *ray_origin;
-        Ray::new(self.camera_center, ray_direction.into())
+        Ray::new(ray_origin, ray_direction.into())
     }
 
     /// Randomly sample a point in the camera defocus disk
