@@ -114,6 +114,10 @@ impl Camera {
         (px * self.pixel_delta_u) + (py * self.pixel_delta_v)
     }
 
+    fn linear_to_gamma(linear_component: f64) -> f64 {
+        linear_component.sqrt()
+    }
+
     fn write_color(&self, out: &mut Vec<u8>, pixel_color: Color) {
         let scale = 1.0 / self.samples_per_pixel as f64;
         let scaled_color = Color::new(
@@ -121,14 +125,21 @@ impl Camera {
             pixel_color.g() * scale,
             pixel_color.b() * scale,
         );
+
+        let corrected_color = Color::new(
+            Self::linear_to_gamma(scaled_color.r()),
+            Self::linear_to_gamma(scaled_color.g()),
+            Self::linear_to_gamma(scaled_color.b()),
+        );
+
         let intensity = Interval::new(0.000, 0.999);
         // TODO(PT): Refactor this into Color?
         out.extend(
             format!(
                 "{} {} {}    ",
-                (256. * intensity.clamp(scaled_color.r())).floor(),
-                (256. * intensity.clamp(scaled_color.g())).floor(),
-                (256. * intensity.clamp(scaled_color.b())).floor(),
+                (256. * intensity.clamp(corrected_color.r())).floor(),
+                (256. * intensity.clamp(corrected_color.g())).floor(),
+                (256. * intensity.clamp(corrected_color.b())).floor(),
             ).as_bytes()
         );
     }
