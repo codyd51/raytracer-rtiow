@@ -87,10 +87,17 @@ impl Material for DielectricMaterial {
             true => 1.0 / self.index_of_refraction,
             false => self.index_of_refraction,
         };
-
         let unit_direction = ray.direction.unit_vector();
-        let refracted = Vec3::refract(unit_direction, hit_record.normal, refraction_ratio);
 
-        Some((Ray::new(hit_record.pos, refracted), attenuation))
+        let cos_theta = f64::min(Vec3::dot(-unit_direction, hit_record.normal), 1.0);
+        let sin_theta = (1.0 - (cos_theta * cos_theta)).sqrt();
+
+        let cannot_refract = (refraction_ratio * sin_theta) > 1.0;
+        let direction = match cannot_refract {
+            true => Vec3::reflect(unit_direction, hit_record.normal),
+            false => Vec3::refract(unit_direction, hit_record.normal, refraction_ratio),
+        };
+
+        Some((Ray::new(hit_record.pos, direction), attenuation))
     }
 }

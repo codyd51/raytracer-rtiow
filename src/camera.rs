@@ -90,7 +90,7 @@ impl Camera {
             scanline_bytes.extend("\n".as_bytes());
             (y, scanline_bytes)
         }).collect::<Vec<(usize, Vec<u8>)>>();
-        
+
         // Order the rendered scanlines
         for (y, scanline_bytes) in scanline_indexes_to_pixel_bytes.iter() {
             output_lines[*y] = scanline_bytes.to_vec();
@@ -168,11 +168,6 @@ impl Camera {
         }
         // Don't allow intersections too close to this surface
         else if let Some(hit_record) = world.hit(ray, Interval::new(0.001, f64::MAX)) {
-            /*
-            let bounce_direction = hit_record.normal + Vec3::random_unit_vector();
-            let bounce_ray = Ray::new(hit_record.pos, bounce_direction);
-            //0.1 * (self.ray_color(bounce_ray, world, ray_bounces_remaining - 1))
-             */
             if let Some((scattered_ray, color)) = hit_record.material.scatter(ray, &hit_record) {
                 color * self.ray_color(scattered_ray, world, ray_bounces_remaining - 1)
             }
