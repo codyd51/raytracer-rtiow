@@ -13,7 +13,6 @@ mod lambertian;
 mod dielectric;
 mod metal;
 
-use std::f64::consts::PI;
 use std::sync::Arc;
 use rand::prelude::IndexedRandom;
 use crate::camera::Camera;
@@ -29,7 +28,37 @@ use crate::sphere::Sphere;
 use crate::utils::{rand_double, rand_proportion};
 use crate::vec3::Vec3;
 
-fn main() -> std::io::Result<()> {
+struct SceneParameters {
+    aspect_ratio: f64,
+    image_width: usize,
+    samples_per_pixel: usize,
+    max_ray_bounces: usize,
+}
+
+fn camera_with_params(
+    scene_params: SceneParameters,
+    look_from: Pos,
+    look_at: Pos,
+    up: Vec3,
+    vertical_field_of_view_angle: f64,
+    defocus_angle: f64,
+    focus_distance: f64,
+) -> Camera {
+    Camera::new(
+        scene_params.aspect_ratio,
+        scene_params.image_width,
+        vertical_field_of_view_angle,
+        look_from,
+        look_at,
+        up,
+        defocus_angle,
+        focus_distance,
+        scene_params.samples_per_pixel,
+        scene_params.max_ray_bounces,
+    )
+}
+
+fn main_cover(scene_parameters: SceneParameters) -> (HittableList, Camera) {
     let mut world = HittableList::new();
 
     let material_ground = LambertianMaterial::new(Color::new(0.5, 0.5, 0.5));
@@ -76,17 +105,60 @@ fn main() -> std::io::Result<()> {
     let mat3 = MetalMaterial::new(Color::new(0.7, 0.6, 0.5), 0.0);
     world.add(Box::new(Sphere::new(Pos::new(4.0, 1.0, 0.0), 1.0, &(mat3 as Arc<dyn Material>))));
 
-    let camera = Camera::new(
-        16.0 / 9.0,
-        1200,
-        20.0,
-        Pos::new(13.0, 2.0, 3.0),
-        Pos::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 1.0, 0.0),
-        0.0,
-        3.4,
-        500,
-        50,
-    );
+    (
+        world,
+        camera_with_params(
+            scene_parameters,
+            Pos::new(13.0, 2.0, 3.0),
+            Pos::new(0.0, 0.0, 0.0),
+            Vec3::new(0.0, 1.0, 0.0),
+            20.0,
+            0.6,
+            10.0,
+        ),
+    )
+}
+
+fn three_balls(scene_params: SceneParameters) -> (HittableList, Camera) {
+    let mut world = HittableList::new();
+
+    let material_ground = LambertianMaterial::new(Color::new(0.8, 0.8, 0.0));
+    let material_center = LambertianMaterial::new(Color::new(0.1, 0.2, 0.5));
+    let material_left = DielectricMaterial::new(1.5);
+    let material_right = MetalMaterial::new(Color::new(0.8, 0.6, 0.2), 0.0);
+
+    world.add(Box::new(Sphere::new(Pos::new(0.0, -100.5, -1.0), 100.0, &(material_ground as Arc<dyn Material>))));
+    world.add(Box::new(Sphere::new(Pos::new(0.0, 0.0, -1.0), 0.5, &(material_center as Arc<dyn Material>))));
+    world.add(Box::new(Sphere::new(Pos::new(-1.0, 0.0, -1.0), 0.5, &(Arc::clone(&material_left) as Arc<dyn Material>))));
+    world.add(Box::new(Sphere::new(Pos::new(-1.0, 0.0, -1.0), -0.4, &(material_left as Arc<dyn Material>))));
+    world.add(Box::new(Sphere::new(Pos::new(1.0, 0.0, -1.0), 0.5, &(material_right as Arc<dyn Material>))));
+
+    (
+        world,
+        camera_with_params(
+            scene_params,
+            Pos::new(-2.0, 2.0, 1.0),
+            Pos::new(0.0, 0.0, -1.0),
+            Vec3::new(0.0, 1.0, 0.0),
+            20.0,
+            10.0,
+            3.4,
+        ),
+    )
+}
+
+fn main() -> std::io::Result<()> {
+    let scene = 1;
+    let scene_params = SceneParameters {
+        aspect_ratio: 16.0 / 9.0,
+        image_width: 400,
+        samples_per_pixel: 50,
+        max_ray_bounces: 50,
+    };
+    let (world, camera) = match scene {
+        0 => three_balls(scene_params),
+        1 => main_cover(scene_params),
+        val => panic!("Unknown scene {val}"),
+    };
     camera.render(&world)
 }
