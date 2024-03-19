@@ -36,7 +36,7 @@ impl Vec3 {
 
     fn random_in_unit_sphere() -> Self {
         loop {
-            let v = Self::random_proportion();
+            let v = Self::random(-1.0, 1.0);
             if v.length_squared() < 1. {
                 return v;
             }
@@ -49,7 +49,11 @@ impl Vec3 {
 
     pub fn random_in_unit_disk() -> Self {
         loop {
-            let v = Vec3::new(rand_proportion(), rand_proportion(), rand_proportion());
+            let v = Vec3::new(
+                rand_double(-1.0, 1.0),
+                rand_double(-1.0, 1.0),
+                0.0,
+            );
             if v.length_squared() < 1.0 {
                 return v;
             }
