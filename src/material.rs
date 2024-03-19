@@ -65,3 +65,32 @@ impl Material for MetalMaterial {
         Some((scattered, self.albedo))
     }
 }
+
+pub struct DielectricMaterial {
+    index_of_refraction: f64,
+}
+
+impl DielectricMaterial {
+    pub fn new(index_of_refraction: f64) -> Rc<Self> {
+        Rc::new(
+            Self {
+                index_of_refraction,
+            }
+        )
+    }
+}
+
+impl Material for DielectricMaterial {
+    fn scatter(&self, ray: Ray, hit_record: &HitRecord) -> Option<(Ray, Color)> {
+        let attenuation = Color::white();
+        let refraction_ratio = match hit_record.is_front_face {
+            true => 1.0 / self.index_of_refraction,
+            false => self.index_of_refraction,
+        };
+
+        let unit_direction = ray.direction.unit_vector();
+        let refracted = Vec3::refract(unit_direction, hit_record.normal, refraction_ratio);
+
+        Some((Ray::new(hit_record.pos, refracted), attenuation))
+    }
+}
