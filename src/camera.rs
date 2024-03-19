@@ -151,9 +151,17 @@ impl Camera {
         }
         // Don't allow intersections too close to this surface
         else if let Some(hit_record) = world.hit(ray, Interval::new(0.001, f64::MAX)) {
-            let bounce_direction = Vec3::random_matching_hemisphere_of_vec(hit_record.normal);
+            /*
+            let bounce_direction = hit_record.normal + Vec3::random_unit_vector();
             let bounce_ray = Ray::new(hit_record.pos, bounce_direction);
-            0.5 * (self.ray_color(bounce_ray, world, ray_bounces_remaining - 1))
+            //0.1 * (self.ray_color(bounce_ray, world, ray_bounces_remaining - 1))
+             */
+            if let Some((scattered_ray, color)) = hit_record.material.scatter(ray, &hit_record) {
+                color * self.ray_color(scattered_ray, world, ray_bounces_remaining - 1)
+            }
+            else {
+                Color::black()
+            }
         }
         else {
             // Background

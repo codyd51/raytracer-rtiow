@@ -1,14 +1,16 @@
+use std::rc::Rc;
 use crate::interval::Interval;
+use crate::material::Material;
 use crate::pos::Pos;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-#[derive(Debug, Copy, Clone)]
 pub struct HitRecord {
     pub t: f64,
     pub pos: Pos,
     pub normal: Vec3,
     pub is_front_face: bool,
+    pub material: Rc<dyn Material>,
 }
 
 impl HitRecord {
@@ -19,6 +21,7 @@ impl HitRecord {
         pos: Pos,
         ray: Ray,
         outward_normal: Vec3,
+        material: &Rc<dyn Material>,
     ) -> Self {
         let is_front_face = Vec3::dot(ray.direction(), outward_normal) < 0.;
         let normal = match is_front_face {
@@ -31,6 +34,7 @@ impl HitRecord {
             pos,
             normal,
             is_front_face,
+            material: Rc::clone(material),
         }
     }
 }
