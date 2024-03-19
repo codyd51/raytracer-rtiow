@@ -79,3 +79,15 @@ impl AddAssign<Color> for Color {
         self.0.z += rhs.b();
     }
 }
+
+impl Mul<Color> for Color {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Self::new(
+            self.r() * rhs.r(),
+            self.g() * rhs.g(),
+            self.b() * rhs.b(),
+        )
+    }
+}

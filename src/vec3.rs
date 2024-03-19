@@ -43,7 +43,7 @@ impl Vec3 {
         }
     }
 
-    fn random_unit_vector() -> Self {
+    pub fn random_unit_vector() -> Self {
         Self::random_in_unit_sphere().unit_vector()
     }
 
@@ -56,6 +56,17 @@ impl Vec3 {
         else {
             -on_unit_sphere
         }
+    }
+
+    pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+        v - (2. * Vec3::dot(v, n) * n)
+    }
+
+    pub fn is_near_zero(&self) -> bool {
+        let epsilon = 1e-8;
+        self.x.abs() < epsilon &&
+            self.y.abs() < epsilon &&
+            self.z.abs() < epsilon
     }
 
     pub fn length(&self) -> f64 {
