@@ -12,22 +12,31 @@ mod material;
 mod lambertian;
 mod dielectric;
 mod metal;
+mod gradient;
 
+use std::f64::consts::PI;
+use std::fs;
+use std::fs::File;
+use std::io::Write;
 use std::sync::Arc;
+use std::time::SystemTime;
 use rand::prelude::IndexedRandom;
 use crate::camera::Camera;
 use crate::color::Color;
 use crate::dielectric::DielectricMaterial;
+use crate::gradient::GradientMaterial;
 use crate::hittable::Hittable;
 use crate::hittable_list::HittableList;
 use crate::lambertian::LambertianMaterial;
 use crate::material::Material;
 use crate::metal::MetalMaterial;
 use crate::pos::Pos;
+use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::utils::{rand_double, rand_proportion};
 use crate::vec3::Vec3;
 
+#[derive(Copy, Clone)]
 struct SceneParameters {
     aspect_ratio: f64,
     image_width: usize,
@@ -37,6 +46,7 @@ struct SceneParameters {
 
 fn camera_with_params(
     scene_params: SceneParameters,
+    background_material: Arc<GradientMaterial>,
     look_from: Pos,
     look_at: Pos,
     up: Vec3,
@@ -47,6 +57,7 @@ fn camera_with_params(
     Camera::new(
         scene_params.aspect_ratio,
         scene_params.image_width,
+        background_material,
         vertical_field_of_view_angle,
         look_from,
         look_at,
@@ -109,6 +120,10 @@ fn main_cover(scene_parameters: SceneParameters) -> (HittableList, Camera) {
         world,
         camera_with_params(
             scene_parameters,
+            GradientMaterial::new(
+                Color::new(0.5, 0.7, 1.0),
+                Color::white(),
+            ),
             Pos::new(13.0, 2.0, 3.0),
             Pos::new(0.0, 0.0, 0.0),
             Vec3::new(0.0, 1.0, 0.0),
@@ -137,6 +152,10 @@ fn three_balls(scene_params: SceneParameters) -> (HittableList, Camera) {
         world,
         camera_with_params(
             scene_params,
+            GradientMaterial::new(
+                Color::new(0.5, 0.7, 1.0),
+                Color::white(),
+            ),
             Pos::new(-2.0, 2.0, 1.0),
             Pos::new(0.0, 0.0, -1.0),
             Vec3::new(0.0, 1.0, 0.0),
@@ -149,6 +168,88 @@ fn three_balls(scene_params: SceneParameters) -> (HittableList, Camera) {
 
 fn main() -> std::io::Result<()> {
     let scene = 1;
+fn pyramid(
+    scene_params: SceneParameters,
+    look_from: Pos,
+    look_to: Pos,
+) -> (HittableList, Camera) {
+    let mut world = HittableList::new();
+
+    let mut layer1 = vec![
+        // Back left corner
+        Pos::new(-2.0,  0.0, -4.0),
+        Pos::new(-2.0,  0.0, -3.0),
+        Pos::new(-2.0,  0.0, -2.0),
+        Pos::new(-2.0,  0.0, -1.0),
+        // Front left corner
+        Pos::new(-2.0,  0.0,  0.0),
+        Pos::new(-1.0,  0.0,  0.0),
+        Pos::new( 0.0,  0.0,  0.0),
+        Pos::new( 1.0,  0.0,  0.0),
+        // Front right corner
+        Pos::new( 2.0,  0.0,  0.0),
+        Pos::new( 2.0,  0.0, -1.0),
+        Pos::new( 2.0,  0.0, -2.0),
+        Pos::new( 2.0,  0.0, -3.0),
+        // Back right corner
+        Pos::new( 2.0,  0.0, -4.0),
+        Pos::new( 1.0,  0.0, -4.0),
+        Pos::new( 0.0,  0.0, -4.0),
+        Pos::new( -1.0,  0.0, -4.0),
+    ];
+    // Translate to the origin
+    layer1 = layer1.iter().map(|p| {
+        (*p + Vec3::new(0.0, 0.0, 2.5)).into()
+    }).collect();
+    let material_layer1 = MetalMaterial::new(Color::rgb(250, 211, 102), 0.4);
+    for pos in layer1.iter() {
+        world.add(Box::new(Sphere::new(*pos, 0.5, &(Arc::clone(&material_layer1) as Arc<dyn Material>))));
+    }
+
+    let mut layer2 = vec![
+        // Back left corner
+        Pos::new(-1.5,  0.5, -3.5),
+        Pos::new(-1.5,  0.5, -2.5),
+        Pos::new(- 1.5,  0.5, -1.5),
+        // Front left corner
+        Pos::new( -1.5,  0.5, -0.5),
+        Pos::new( -0.5,  0.5, -0.5),
+        Pos::new( 0.5,  0.5, -0.5),
+        // Front right corner
+        Pos::new( 1.5, 0.5, -0.5),
+        Pos::new( 1.5, 0.5, -1.5),
+        Pos::new( 1.5, 0.5,  -2.5),
+        // Back right corner
+        Pos::new( 1.5,  0.5, -3.5),
+        Pos::new( 0.5,  0.5, -3.5),
+        Pos::new(-0.5,  0.5, -3.5),
+    ];
+    layer2 = layer2.iter().map(|p| {
+        (*p + Vec3::new(0.0, 0.0, 2.5)).into()
+    }).collect();
+    let material_layer2 = DielectricMaterial::new(1.5);
+    for pos in layer2.iter() {
+        world.add(Box::new(Sphere::new(*pos, 0.5, &(Arc::clone(&material_layer2) as Arc<dyn Material>))));
+    }
+
+    (
+        world,
+        camera_with_params(
+            scene_params,
+            GradientMaterial::new(
+                Color::rgb(200, 120, 30),
+                Color::rgb(70, 70, 70),
+            ),
+            look_from,
+            look_to,
+            Vec3::new(0.0, 1.0, 0.0),
+            20.0,
+            0.0,
+            3.4,
+        ),
+    )
+}
+
     let scene_params = SceneParameters {
         aspect_ratio: 16.0 / 9.0,
         image_width: 400,
