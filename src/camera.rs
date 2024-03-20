@@ -1,11 +1,14 @@
 use std::fs::File;
 use std::io::Write;
+use std::sync::Arc;
 use std::time::SystemTime;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 use crate::color::Color;
-use crate::hittable::Hittable;
+use crate::gradient::GradientMaterial;
+use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
+use crate::material::Material;
 use crate::pos::Pos;
 use crate::ray::Ray;
 use crate::utils::{degrees_to_radians, rand_proportion};
@@ -29,12 +32,14 @@ pub struct Camera {
     defocus_disk_u: Vec3,
     /// Defocus disk vertical radius
     defocus_disk_v: Vec3,
+    background_material: Arc<GradientMaterial>,
 }
 
 impl Camera {
     pub fn new(
         aspect_ratio: f64,
         image_width: usize,
+        background_material: Arc<GradientMaterial>,
         vertical_field_of_view_angle: f64,
         // Camera position in the world
         look_from: Pos,
@@ -96,6 +101,7 @@ impl Camera {
             defocus_angle,
             defocus_disk_u,
             defocus_disk_v,
+            background_material,
         }
     }
 
@@ -212,7 +218,7 @@ impl Camera {
         }
         // Don't allow intersections too close to this surface
         else if let Some(hit_record) = world.hit(ray, Interval::new(0.001, f64::MAX)) {
-            if let Some((scattered_ray, color)) = hit_record.material.scatter(ray, &hit_record) {
+            if let Some((scattered_ray, color)) = hit_record.material.scatter(ray, Some(&hit_record)) {
                 color * self.ray_color(scattered_ray, world, ray_bounces_remaining - 1)
             }
             else {
@@ -221,9 +227,8 @@ impl Camera {
         }
         else {
             // Background
-            let unit_direction = ray.direction().unit_vector();
-            let a = 0.5 * (unit_direction.y + 1.0);
-            ((1.0 - a) * Color::new(1., 1., 1.)) + (a * Color::new(0.5, 0.7, 1.0))
+            let (_, background_color) = self.background_material.scatter(ray, None).expect("Failed to get a ray color for the background");
+            background_color
         }
     }
 }

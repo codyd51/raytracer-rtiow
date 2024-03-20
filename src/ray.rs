@@ -18,6 +18,10 @@ impl Ray {
         }
     }
 
+    pub fn zero() -> Self {
+        Self::new(Pos::zero(), Vec3::zero())
+    }
+
     pub fn origin(&self) -> Pos {
         self.origin
     }
