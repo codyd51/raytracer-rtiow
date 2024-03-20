@@ -33,7 +33,7 @@ use crate::metal::MetalMaterial;
 use crate::pos::Pos;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
-use crate::utils::{rand_double, rand_proportion};
+use crate::utils::{degrees_to_radians, rand_double, rand_proportion};
 use crate::vec3::Vec3;
 
 #[derive(Copy, Clone)]
@@ -166,6 +166,46 @@ fn three_balls(scene_params: SceneParameters) -> (HittableList, Camera) {
     )
 }
 
+struct Hsv {
+    // 0 - 360
+    hue: f64,
+    // 0 - 1
+    sat: f64,
+    // 0 - 1
+    brightness: f64,
+}
+
+impl From<Hsv> for Color {
+    fn from(val: Hsv) -> Self {
+        let h = val.hue;
+        let s = val.sat;
+        let v = val.brightness;
+
+        let c = v * s;
+        let x = c * (1.0 - (((h / 60.0) % 2.0) - 1.0).abs());
+        let m = v - c;
+        let (r_, g_, b_) = if h >= 0.0 && h < 60.0 {
+            (c, x, 0.0)
+        } else if h >= 60.0 && h < 120.0 {
+            (x, c, 0.0)
+        } else if h >= 120.0 && h < 180.0 {
+            (0.0, c, x)
+        } else if h >= 180.0 && h < 240.0 {
+            (0.0, x, c)
+        } else if h >= 240.0 && h < 300.0 {
+            (x, 0.0, c)
+        } else {
+            (c, 0.0, x)
+        };
+
+        Color::rgb(
+            ((r_ + m) * 255.0).round() as u8,
+            ((g_ + m) * 255.0).round() as u8,
+            ((b_ + m) * 255.0).round() as u8,
+        )
+    }
+}
+
 fn pyramid(
     scene_params: SceneParameters,
     look_from: Pos,
@@ -173,61 +213,114 @@ fn pyramid(
 ) -> (HittableList, Camera) {
     let mut world = HittableList::new();
 
-    let mut layer1 = vec![
+    let radius = 0.5;
+    //let height = ((3.0f64).sqrt() / 2.0) * (radius * 1.0);
+    let height = 0.5;
+    let l2_y = height;
+    let layer1 = vec![
         // Back left corner
-        Pos::new(-2.0,  0.0, -4.0),
-        Pos::new(-2.0,  0.0, -3.0),
         Pos::new(-2.0,  0.0, -2.0),
         Pos::new(-2.0,  0.0, -1.0),
-        // Front left corner
         Pos::new(-2.0,  0.0,  0.0),
-        Pos::new(-1.0,  0.0,  0.0),
-        Pos::new( 0.0,  0.0,  0.0),
-        Pos::new( 1.0,  0.0,  0.0),
+        Pos::new(-2.0,  0.0,  1.0),
+        // Front left corner
+        Pos::new(-2.0,  0.0,  2.0),
+        Pos::new(-1.0,  0.0,  2.0),
+        Pos::new( 0.0,  0.0,  2.0),
+        Pos::new( 1.0,  0.0,  2.0),
         // Front right corner
+        Pos::new( 2.0,  0.0,  2.0),
+        Pos::new( 2.0,  0.0,  1.0),
         Pos::new( 2.0,  0.0,  0.0),
         Pos::new( 2.0,  0.0, -1.0),
-        Pos::new( 2.0,  0.0, -2.0),
-        Pos::new( 2.0,  0.0, -3.0),
         // Back right corner
-        Pos::new( 2.0,  0.0, -4.0),
-        Pos::new( 1.0,  0.0, -4.0),
-        Pos::new( 0.0,  0.0, -4.0),
-        Pos::new( -1.0,  0.0, -4.0),
+        Pos::new( 2.0,  0.0, -2.0),
+        Pos::new( 1.0,  0.0, -2.0),
+        Pos::new( 0.0,  0.0, -2.0),
+        Pos::new(-1.0,  0.0, -2.0),
     ];
     // Translate to the origin
+    /*
     layer1 = layer1.iter().map(|p| {
         (*p + Vec3::new(0.0, 0.0, 2.5)).into()
     }).collect();
-    let material_layer1 = MetalMaterial::new(Color::rgb(250, 211, 102), 0.4);
-    for pos in layer1.iter() {
-        world.add(Box::new(Sphere::new(*pos, 0.5, &(Arc::clone(&material_layer1) as Arc<dyn Material>))));
+     */
+    for (i, pos) in layer1.iter().enumerate() {
+        let hue = (360.0 / layer1.len() as f64) * i as f64;
+        let hsv = Hsv {
+            hue,
+            sat: 0.5,
+            brightness: 0.8,
+        };
+        let rgb = Color::from(hsv);
+        let mat = LambertianMaterial::new(rgb);
+        world.add(Box::new(Sphere::new(*pos, 0.5, &(mat as Arc<dyn Material>))));
     }
 
-    let mut layer2 = vec![
+    let layer2 = vec![
         // Back left corner
-        Pos::new(-1.5,  0.5, -3.5),
-        Pos::new(-1.5,  0.5, -2.5),
-        Pos::new(- 1.5,  0.5, -1.5),
+        Pos::new(-1.5,  l2_y, -1.5),
+        Pos::new(-1.5,  l2_y, -0.5),
+        Pos::new(-1.5,  l2_y,  0.5),
         // Front left corner
-        Pos::new( -1.5,  0.5, -0.5),
-        Pos::new( -0.5,  0.5, -0.5),
-        Pos::new( 0.5,  0.5, -0.5),
+        Pos::new( -1.5,  l2_y,  1.5),
+        Pos::new( -0.5,  l2_y,  1.5),
+        Pos::new( 0.5,  l2_y,  1.5),
         // Front right corner
-        Pos::new( 1.5, 0.5, -0.5),
-        Pos::new( 1.5, 0.5, -1.5),
-        Pos::new( 1.5, 0.5,  -2.5),
+        Pos::new( 1.5, l2_y,  1.5),
+        Pos::new( 1.5, l2_y,  0.5),
+        Pos::new( 1.5, l2_y,  -0.5),
         // Back right corner
-        Pos::new( 1.5,  0.5, -3.5),
-        Pos::new( 0.5,  0.5, -3.5),
-        Pos::new(-0.5,  0.5, -3.5),
+        Pos::new( 1.5,  l2_y, -1.5),
+        Pos::new( 0.5,  l2_y, -1.5),
+        Pos::new(-0.5,  l2_y, -1.5),
     ];
-    layer2 = layer2.iter().map(|p| {
-        (*p + Vec3::new(0.0, 0.0, 2.5)).into()
-    }).collect();
     let material_layer2 = DielectricMaterial::new(1.5);
     for pos in layer2.iter() {
         world.add(Box::new(Sphere::new(*pos, 0.5, &(Arc::clone(&material_layer2) as Arc<dyn Material>))));
+    }
+
+    let l3_y = height * 2.0;
+    let layer3 = vec![
+        // Back left corner
+        Pos::new(-1.0,  l3_y, -1.0),
+        Pos::new(-1.0,  l3_y,  0.0),
+        // Front left corner
+        Pos::new(-1.0,  l3_y,  1.0),
+        Pos::new( 0.0, l3_y,  1.0),
+        // Front right corner
+        Pos::new( 1.0, l3_y,  1.0),
+        Pos::new( 1.0, l3_y,  0.0),
+        // Back right corner
+        Pos::new( 1.0,  l3_y, -1.0),
+        Pos::new( 0.0,  l3_y, -1.0),
+    ];
+    //let material_layer3 = LambertianMaterial::new(Color::rgb(108, 160, 245));
+    let material_layer3 = MetalMaterial::new(Color::rgb(250, 211, 102), 0.);
+    for pos in layer3.iter() {
+        world.add(Box::new(Sphere::new(*pos, 0.5, &(Arc::clone(&material_layer3) as Arc<dyn Material>))));
+    }
+
+    let l4_y = height * 3.0;
+    let layer4 = vec![
+        // Back left corner
+        Pos::new(-0.5,  l4_y, -0.5),
+        // Front left corner
+        Pos::new(-0.5,  l4_y,  0.5),
+        // Front right corner
+        Pos::new( 0.5, l4_y,  0.5),
+        // Back right corner
+        Pos::new( 0.5,  l4_y, -0.5),
+    ];
+    for pos in layer4.iter() {
+        world.add(Box::new(Sphere::new(*pos, 0.5, &(Arc::clone(&material_layer2) as Arc<dyn Material>))));
+    }
+
+    let l5_y = height * 4.0;
+    let layer5 = vec![Pos::new(0.0,  l5_y, 0.0)];
+    let l5_material = MetalMaterial::new(Color::rgb(255, 43, 10), 0.);
+    for pos in layer5.iter() {
+        world.add(Box::new(Sphere::new(*pos, 0.5, &(Arc::clone(&l5_material) as Arc<dyn Material>))));
     }
 
     (
@@ -235,8 +328,8 @@ fn pyramid(
         camera_with_params(
             scene_params,
             GradientMaterial::new(
-                Color::rgb(200, 120, 30),
-                Color::rgb(70, 70, 70),
+                Color::white(),
+                Color::rgb(100, 150, 130),
             ),
             look_from,
             look_to,
@@ -248,7 +341,7 @@ fn pyramid(
     )
 }
 
-fn main2() -> std::io::Result<()> {
+fn main3() -> std::io::Result<()> {
     let scene = 2;
     let scene_params = SceneParameters {
         aspect_ratio: 16.0 / 9.0,
@@ -261,8 +354,8 @@ fn main2() -> std::io::Result<()> {
         1 => main_cover(scene_params),
         2 => pyramid(
             scene_params,
-            Pos::new(0.0, 4.0, 10.0),
-            Pos::new(0.0, 0.0, -4.0),
+            Pos::new(0.0, 4.0, 12.0),
+            Pos::new(0.0, 0.0, 0.0),
         ),
         val => panic!("Unknown scene {val}"),
     };
@@ -270,28 +363,29 @@ fn main2() -> std::io::Result<()> {
 }
 
 fn main() -> std::io::Result<()> {
-    let look_from = Pos::new(0.0, 6.0, 6.0);
-    let look_to = Pos::new(0.0, 0.0, 0.0);
+    let look_from = Pos::new(0.0, 4.0, -6.0);
+    let look_to = Pos::new(0.0, 0.5, 0.0);
     let scene_params = SceneParameters {
         aspect_ratio: 16.0 / 9.0,
-        image_width: 800,
+        image_width: 400,
         samples_per_pixel: 100,
         max_ray_bounces: 50,
     };
 
     let radius = look_from.z;
-    let step_count = 100;
+    let step_count = 300;
     let start_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed to retrieve time since epoch");
     let output_dir_path = format!("./movie_{}", start_time.as_secs());
     fs::create_dir(output_dir_path.clone())?;
 
-    for rotation_step in 26..step_count {
+    let camera_distance = 12.0;
+    for rotation_step in 0..step_count {
         println!("Process rotation step #{rotation_step} / {step_count}");
         let angle = (rotation_step as f64 * 2.0 * PI) / step_count as f64;
-        let look_from_x = radius * angle.cos();
-        let look_from_z = radius * angle.sin();
-        let look_from = look_from + Vec3::new(look_from_x, 0.0, look_from_z);
-        let look_to = look_to + Vec3::new(0.0, 0.0, 0.0);
+        let look_from_x = camera_distance * angle.sin();
+        let look_from_z = camera_distance * angle.cos();
+        let look_from = Pos::new(look_from_x, look_from.y, look_from_z);
+        //let look_to = look_to + Vec3::new(0.0, 0.0, 0.0);
         let (world, camera) = pyramid(
             scene_params,
             look_from,
