@@ -26,7 +26,7 @@ impl GradientMaterial {
 impl Material for GradientMaterial {
     fn scatter(&self, ray: Ray, _hit_record: Option<&HitRecord>) -> Option<(Ray, Color)> {
         let unit_direction = ray.direction().unit_vector();
-        let a = 0.5 * (unit_direction.y + 1.0);
+        let a = unit_direction.y + 1.0;
         Some((Ray::zero(), ((1.0 - a) * self.to_color) + (a * self.from_color)))
     }
 }
