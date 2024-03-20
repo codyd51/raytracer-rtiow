@@ -12,6 +12,10 @@ impl Color {
         Self(Vec3::new(r, g, b))
     }
 
+    pub fn rgb(r: u8, g: u8, b: u8) -> Self {
+        Self(Vec3::new(r as f64 / 255.0, g as f64 / 255.0, b as f64 / 255.0))
+    }
+
     pub fn r(&self) -> f64 {
         self.0.x
     }

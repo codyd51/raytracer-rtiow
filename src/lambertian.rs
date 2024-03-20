@@ -20,7 +20,8 @@ impl LambertianMaterial {
 }
 
 impl Material for LambertianMaterial {
-    fn scatter(&self, ray: Ray, hit_record: &HitRecord) -> Option<(Ray, Color)> {
+    fn scatter(&self, ray: Ray, hit_record: Option<&HitRecord>) -> Option<(Ray, Color)> {
+        let hit_record = hit_record.expect("Expected a hit record to be available");
         let mut scatter_direction = hit_record.normal + Vec3::random_unit_vector();
 
         // Catch degenerate scatter direction

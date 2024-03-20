@@ -28,7 +28,8 @@ fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
 }
 
 impl Material for DielectricMaterial {
-    fn scatter(&self, ray: Ray, hit_record: &HitRecord) -> Option<(Ray, Color)> {
+    fn scatter(&self, ray: Ray, hit_record: Option<&HitRecord>) -> Option<(Ray, Color)> {
+        let hit_record = hit_record.expect("Expected a hit record to be available");
         let attenuation = Color::white();
         let refraction_ratio = match hit_record.is_front_face {
             true => 1.0 / self.index_of_refraction,

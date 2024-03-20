@@ -23,7 +23,8 @@ impl MetalMaterial {
 }
 
 impl Material for MetalMaterial {
-    fn scatter(&self, ray: Ray, hit_record: &HitRecord) -> Option<(Ray, Color)> {
+    fn scatter(&self, ray: Ray, hit_record: Option<&HitRecord>) -> Option<(Ray, Color)> {
+        let hit_record = hit_record.expect("Expected a hit record to be available");
         let reflected = Vec3::reflect(ray.direction.unit_vector(), hit_record.normal);
         let fuzzed_direction = reflected + (self.fuzz * Vec3::random_unit_vector());
         let scattered = Ray::new(hit_record.pos, fuzzed_direction);
