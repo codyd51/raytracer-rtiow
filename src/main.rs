@@ -166,8 +166,6 @@ fn three_balls(scene_params: SceneParameters) -> (HittableList, Camera) {
     )
 }
 
-fn main() -> std::io::Result<()> {
-    let scene = 1;
 fn pyramid(
     scene_params: SceneParameters,
     look_from: Pos,
@@ -250,16 +248,59 @@ fn pyramid(
     )
 }
 
+fn main2() -> std::io::Result<()> {
+    let scene = 2;
     let scene_params = SceneParameters {
         aspect_ratio: 16.0 / 9.0,
         image_width: 400,
-        samples_per_pixel: 50,
+        samples_per_pixel: 10,
         max_ray_bounces: 50,
     };
     let (world, camera) = match scene {
         0 => three_balls(scene_params),
         1 => main_cover(scene_params),
+        2 => pyramid(
+            scene_params,
+            Pos::new(0.0, 4.0, 10.0),
+            Pos::new(0.0, 0.0, -4.0),
+        ),
         val => panic!("Unknown scene {val}"),
     };
-    camera.render(&world)
+    camera.render(&world).map(|_| ())
+}
+
+fn main() -> std::io::Result<()> {
+    let look_from = Pos::new(0.0, 6.0, 6.0);
+    let look_to = Pos::new(0.0, 0.0, 0.0);
+    let scene_params = SceneParameters {
+        aspect_ratio: 16.0 / 9.0,
+        image_width: 800,
+        samples_per_pixel: 100,
+        max_ray_bounces: 50,
+    };
+
+    let radius = look_from.z;
+    let step_count = 100;
+    let start_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed to retrieve time since epoch");
+    let output_dir_path = format!("./movie_{}", start_time.as_secs());
+    fs::create_dir(output_dir_path.clone())?;
+
+    for rotation_step in 26..step_count {
+        println!("Process rotation step #{rotation_step} / {step_count}");
+        let angle = (rotation_step as f64 * 2.0 * PI) / step_count as f64;
+        let look_from_x = radius * angle.cos();
+        let look_from_z = radius * angle.sin();
+        let look_from = look_from + Vec3::new(look_from_x, 0.0, look_from_z);
+        let look_to = look_to + Vec3::new(0.0, 0.0, 0.0);
+        let (world, camera) = pyramid(
+            scene_params,
+            look_from,
+            look_to,
+        );
+        let ppm = camera.render(&world).expect("Failed to render");
+        let mut frame_file = File::create(format!("{output_dir_path}/{}.ppm", rotation_step))?;
+        frame_file.write(&ppm)?;
+    }
+
+    Ok(())
 }
