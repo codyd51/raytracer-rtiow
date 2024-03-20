@@ -105,7 +105,7 @@ impl Camera {
         }
     }
 
-    pub fn render(&self, world: &dyn Hittable) -> std::io::Result<()> {
+    pub fn render(&self, world: &dyn Hittable) -> std::io::Result<Vec<u8>> {
         // Render
         let mut out = vec![];
         // Write out the PPM header
@@ -150,7 +150,7 @@ impl Camera {
         let mut cached_output_file = File::create(format!("./images/{}.ppm", dist_from_epoch.as_secs()))?;
         cached_output_file.write(&out)?;
 
-        Ok(())
+        Ok(out)
     }
 
     /// Get a randomly sampled camera ray for the pixel at (x, y),
