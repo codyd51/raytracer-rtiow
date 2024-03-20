@@ -147,7 +147,7 @@ impl Camera {
 
         // Copy every output image to a secondary 'history' folder, so I can't accidentally forget to record progress
         let dist_from_epoch = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).expect("Failed to retrieve time since epoch");
-        let mut cached_output_file = File::create(format!("./images/{}.ppm", dist_from_epoch.as_secs()))?;
+        let mut cached_output_file = File::create(format!("./images/{}.ppm", dist_from_epoch.as_millis()))?;
         cached_output_file.write(&out)?;
 
         Ok(out)
